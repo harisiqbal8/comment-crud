@@ -4,6 +4,7 @@ function Comment() {
   // State to store comments
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [editedComment, setEditedComment] = useState('');
 
   // Fetch comments from the JSONPlaceholder API
   useEffect(() => {
@@ -31,6 +32,33 @@ function Comment() {
       });
   };
 
+   // Edit a comment
+   const edit = (id) => {
+    setEditedComment(id);
+  };
+
+  // Save edited comment
+  const saveEdit = (id, updatedComment) => {
+    fetch(`https://jsonplaceholder.typicode.com/comments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        body: updatedComment,
+      }),
+      headers: {
+        'Content-type': 'application/json; charset=UTF-8',
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setComments(
+          comments.map((comment) =>
+          comment.id === id ? { ...comment, body: updatedComment } : comment
+          )
+        );
+        setEditedComment('');
+      });
+  };
+
   // Delete a comment
   const deleteComment = (id) => {
     fetch(`https://jsonplaceholder.typicode.com/comments/${id}`, {
@@ -43,14 +71,6 @@ function Comment() {
   return (
     <div>
       <h2>Comments</h2>
-      <ul>
-        {comments.map((comment) => (
-          <li key={comment.id}>
-            {comment.body}
-            <button onClick={() => deleteComment(comment.id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
       <div>
         <input
           type="text"
@@ -60,6 +80,32 @@ function Comment() {
         />
         <button onClick={createComment}>Add</button>
       </div>
+      <ul>
+        {comments.map((comment) => (
+          <li key={comment.id}>
+            
+
+            {editedComment === comment.id ? (
+              <>
+                <input
+                  type="text"
+                  value={editedComment}
+                  onChange={(e) => setEditedComment(e.target.value)}
+                />
+                <button onClick={() => saveEdit(comment.id, editedComment)}>
+                  Save
+                </button>
+              </>
+            ) : (
+              <>
+                {comment.body}
+                <button onClick={() => edit(comment.id)}>Edit</button>
+                <button onClick={() => deleteComment(comment.id)}>Delete</button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
